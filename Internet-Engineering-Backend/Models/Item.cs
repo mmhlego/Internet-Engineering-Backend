@@ -21,7 +21,18 @@ public class Item
 public class File : Item
 {
 	public required long ContentSize { get; set; }
+	public required string FileName { get; set; }
 	public required string ContentUrl { get; set; }
+	public required FileTypes FileType { get; set; }
+}
+
+public enum FileTypes
+{
+	Audio,
+	Video,
+	Image,
+	Document,
+	Others,
 }
 
 public class Folder : Item

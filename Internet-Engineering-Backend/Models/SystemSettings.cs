@@ -9,6 +9,5 @@ public class SystemSettings
 	[BsonRepresentation(BsonType.ObjectId)]
 	public string Id { get; set; } = null!;
 	public required long StorageLimit { get; set; }
-	public required string SuperKey { get; set; }
 	public required bool CanRegister { get; set; }
 }

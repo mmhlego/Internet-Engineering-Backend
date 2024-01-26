@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Minio;
+using Minio.DataModel.Args;
 using MongoDB.Driver;
 
 namespace Internet_Engineering_Backend.Controllers;
@@ -33,7 +34,7 @@ public class AuthController : ControllerBase
 		var user = _dbContext.Users.Find(f => f.Username == request.Username).FirstOrDefault();
 		if (user == null) return BadRequest(_strings.GetErrorMessage(Errors.INVALID_LOGIN));
 
-		var hashedPassword = StringUtils.HashString(request.Password, user.Salt);
+		var hashedPassword = (request.Password + user.Salt).GetSHA512();
 		if (hashedPassword == user.Password)
 			return BadRequest(_strings.GetErrorMessage(Errors.INVALID_LOGIN));
 
@@ -52,12 +53,15 @@ public class AuthController : ControllerBase
 	[Route("register")]
 	public async Task<ActionResult> Register(RegisterRequest request)
 	{
-		// TODO: Check registration
-		// var SystemSettings = _dbContext.
-		// var x = new ConfigurationManager();
+		var systemSettings = _dbContext.SystemSettings.Find(f => true).First();
+		if (!systemSettings.CanRegister)
+			return BadRequest(_strings.GetErrorMessage(Errors.REGISTRATION_CLOSED));
 
-		var user = _dbContext.Users.Find(f => f.Username == request.Username).FirstOrDefault();
-		if (user == null) return BadRequest(_strings.GetErrorMessage(Errors.USERNAME_EXISTS));
+		if (_dbContext.Users.Find(f => f.Username == request.Username).Any())
+			return BadRequest(_strings.GetErrorMessage(Errors.USERNAME_EXISTS));
+
+		if (_dbContext.Users.Find(f => f.EmailAddress == request.EmailAddress).Any())
+			return BadRequest(_strings.GetErrorMessage(Errors.EMAIL_EXISTS));
 
 		if (request.Password.Length < 8
 			|| request.Password.Contains(StringUtils.Symbols)
@@ -66,28 +70,30 @@ public class AuthController : ControllerBase
 			|| request.Password.Contains(StringUtils.UpperAlphabets))
 			return BadRequest(_strings.GetErrorMessage(Errors.WEAK_PASSWORD));
 
-		var salt = StringUtils.GenerateSalt();
-		var hashedPassword = StringUtils.HashString(request.Password, user.Salt);
-		var encryptionKey = StringUtils.HashString(StringUtils.GenerateSalt(), "");
+		var salt = StringUtils.GenerateSalt().GetSHA256()[..32];
+		var hashedPassword = (request.Password + salt).GetSHA512();
 
 		var newUser = new User
 		{
 			Username = request.Username,
 			FirstName = request.FirstName,
 			LastName = request.LastName,
-			Role = UserRoles.Basic,
 			EmailAddress = request.EmailAddress,
 			Salt = salt,
 			Password = hashedPassword,
-			EncryptionKey = encryptionKey,
+			EncryptionKey = "",
 		};
 
 		_dbContext.Users.InsertOne(newUser);
 
+		var bucketName = newUser.Id.ToString();
+		var args = new MakeBucketArgs().WithBucket(bucketName);
+		await _minioClient.MakeBucketAsync(args);
+
 		var claims = new List<Claim>
 		{
-			new Claim(ClaimTypes.NameIdentifier, user.Id),
-			new Claim(ClaimTypes.Role, user.Role.ToString()),
+			new Claim(ClaimTypes.NameIdentifier, newUser.Id),
+			new Claim(ClaimTypes.Role, newUser.Role.ToString()),
 		};
 		var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 		await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));

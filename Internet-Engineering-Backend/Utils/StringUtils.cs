@@ -12,9 +12,6 @@ public class StringUtils
 	public static readonly string Digits = "0123456789";
 	public static readonly string Symbols = "-_=+(){{}}[]*&^%$#@!";
 
-	public static string HashString(string password, string salt) =>
-		BitConverter.ToString(SHA256.HashData(Encoding.UTF8.GetBytes(password + salt))).Replace("-", "");
-
 	public static string GenerateSalt() => Guid.NewGuid().ToString();
 
 	public static string RandomString(int length, bool includeNumber = false)
@@ -22,22 +19,6 @@ public class StringUtils
 		var letters = UpperAlphabets + (includeNumber ? Digits : "");
 
 		return new string(Enumerable.Repeat(letters, length).Select(s => s[_random.Next(s.Length)]).ToArray());
-	}
-
-	public static string ByteArrayToHexString(byte[] array) => BitConverter.ToString(array).Replace("-", "");
-
-	public static byte[] StringToByteArray(string str) => Encoding.ASCII.GetBytes(str);
-
-	public static byte[] HexStringToByteArray(string hexString)
-	{
-		byte[] data = new byte[hexString.Length / 2];
-		for (int index = 0; index < data.Length; index++)
-		{
-			string byteValue = hexString.Substring(index * 2, 2);
-			data[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-		}
-
-		return data;
 	}
 
 	public static byte[] EncryptString(string plainText, byte[] Key, byte[] IV)
@@ -55,7 +36,7 @@ public class StringUtils
 		return encrypted;
 	}
 
-	public static string Decrypt(byte[] cipherText, byte[] Key, byte[] IV)
+	public static string DecryptString(byte[] cipherText, byte[] Key, byte[] IV)
 	{
 		string plaintext = "";
 		using Aes aes = Aes.Create();
