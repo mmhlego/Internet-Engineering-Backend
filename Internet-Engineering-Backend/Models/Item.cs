@@ -9,13 +9,14 @@ public class Item
 	[BsonRepresentation(BsonType.ObjectId)]
 	public string Id { get; set; } = null!;
 	public required string OwnerId { get; set; }
-	public string? ParentId { get; set; } = null;
+	public required string ParentId { get; set; }
 
 	public required string Name { get; set; }
 	public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 	public List<string> Tags { get; set; } = new List<string>();
 	public string Description { get; set; } = "";
 	public bool IsEncrypted { get; set; } = true;
+	public string IconColor { get; set; } = "#ffffff";
 }
 
 public class File : Item
@@ -37,7 +38,6 @@ public enum FileTypes
 
 public class Folder : Item
 {
-	public string Color { get; set; } = "#ffffff";
 	public SortOrders SortOrder { get; set; } = SortOrders.Name;
 }
 

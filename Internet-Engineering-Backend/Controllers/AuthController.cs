@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Minio;
 using Minio.DataModel.Args;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace Internet_Engineering_Backend.Controllers;
 
@@ -50,6 +51,29 @@ public class AuthController : ControllerBase
 	}
 
 	[HttpPost]
+	[Route("test")]
+	public async Task<ActionResult> Test(IFormFile file)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+		// using (var ms = new MemoryStream())
+		// {
+		// file.CopyTo(ms);
+		// var fileBytes = ms.ToArray();
+
+		// var stream = file.OpenReadStream();
+		var name = Guid.NewGuid().ToString();
+		var args = new PutObjectArgs()
+			.WithBucket(userId)
+			.WithObject(name)
+			.WithObjectSize(file.Length)
+			.WithStreamData(file.OpenReadStream());
+		await _minioClient.PutObjectAsync(args);
+
+		return Ok($"localhost:9000/{userId}/{name}");
+	}
+
+	[HttpPost]
 	[Route("register")]
 	public async Task<ActionResult> Register(RegisterRequest request)
 	{
@@ -87,8 +111,20 @@ public class AuthController : ControllerBase
 		_dbContext.Users.InsertOne(newUser);
 
 		var bucketName = newUser.Id.ToString();
-		var args = new MakeBucketArgs().WithBucket(bucketName);
-		await _minioClient.MakeBucketAsync(args);
+		var makeArgs = new MakeBucketArgs().WithBucket(bucketName);
+		await _minioClient.MakeBucketAsync(makeArgs);
+
+		// TODO
+		// var jsonFormat = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:GetBucketLocation\",\"s3:ListBucket\",\"s3:ListBucketMultipartUploads\"],\"Resource\":[\"arn:aws:s3:::65b4ae718c321a19d0d4f9d4\"]},{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:ListMultipartUploadParts\",\"s3:PutObject\",\"s3:AbortMultipartUpload\",\"s3:DeleteObject\",\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::65b4ae718c321a19d0d4f9d4/*\"]}]}";
+		// var updateArgs = new SetPolicyArgs().WithBucket(bucketName).WithPolicy(jsonFormat);
+		// await _minioClient.SetPolicyAsync(updateArgs);
+
+		var baseFolder = new Folder
+		{
+			Name = "",
+			OwnerId = newUser.Id,
+			ParentId = "",
+		};
 
 		var claims = new List<Claim>
 		{

@@ -6,15 +6,18 @@ using Minio;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMinio(config => config
-	.WithEndpoint(builder.Configuration.GetSection("MinioSettings:Address").Get<string>())
-	.WithCredentials(
-		builder.Configuration.GetSection("MinioSettings:AccessKey").Get<string>(),
-		builder.Configuration.GetSection("MinioSettings:SecretKey").Get<string>()
-	)
-);
 
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
+
+builder.Services.AddSingleton(
+	new MinioClient()
+		.WithEndpoint(builder.Configuration.GetSection("MinioSettings:Address").Get<string>())
+		.WithCredentials(
+			Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY"),
+			Environment.GetEnvironmentVariable("MINIO_SECRET_KEY")
+		)
+		.Build()
+);
 
 builder.Services.AddSingleton<StringsManager>();
 builder.Services.AddTransient<DbContext>();

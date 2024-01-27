@@ -10,10 +10,6 @@ services:
             - ${MINIO_ADMIN_PORT}:9001
         volumes:
             - minio_data:/data
-        # environment:
-        #     MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-        #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-        #     MINIO_DEFAULT_BUCKETS: ${MINIO_DEFAULT_BUCKETS}
         env_file: .env
 
     mongodb:
@@ -24,9 +20,6 @@ services:
             - 27017:27017
         volumes:
             - mongo_data:/data/db
-        # environment:
-        #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-        #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
         env_file: .env
 
     ie-backend:

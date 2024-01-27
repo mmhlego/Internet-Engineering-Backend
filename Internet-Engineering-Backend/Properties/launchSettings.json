@@ -16,7 +16,9 @@
 			"launchUrl": "swagger",
 			"applicationUrl": "http://localhost:8000",
 			"environmentVariables": {
-				"ASPNETCORE_ENVIRONMENT": "Development"
+				"ASPNETCORE_ENVIRONMENT": "Development",
+				"MINIO_ACCESS_KEY": "e6Zw2mMFRmZLdULBXqsU",
+				"MINIO_SECRET_KEY": "i79g3yLublUnBpK7HmhKL0oZ8QIR8Hk7hsYS7DnQ"
 			}
 		},
 		"https": {
@@ -26,15 +28,9 @@
 			"launchUrl": "swagger",
 			"applicationUrl": "https://localhost:8001;http://localhost:8000",
 			"environmentVariables": {
-				"ASPNETCORE_ENVIRONMENT": "Development"
-			}
-		},
-		"IIS Express": {
-			"commandName": "IISExpress",
-			"launchBrowser": true,
-			"launchUrl": "swagger",
-			"environmentVariables": {
-				"ASPNETCORE_ENVIRONMENT": "Development"
+				"ASPNETCORE_ENVIRONMENT": "Development",
+				"MINIO_ACCESS_KEY": "e6Zw2mMFRmZLdULBXqsU",
+				"MINIO_SECRET_KEY": "i79g3yLublUnBpK7HmhKL0oZ8QIR8Hk7hsYS7DnQ"
 			}
 		}
 	}
