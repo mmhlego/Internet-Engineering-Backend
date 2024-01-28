@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Diagnostics;
+using System.Security.Claims;
 using Internet_Engineering_Backend.Data;
 using Internet_Engineering_Backend.Models;
 using Internet_Engineering_Backend.Resources;
@@ -9,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Minio;
 using Minio.DataModel.Args;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 
 namespace Internet_Engineering_Backend.Controllers;
 
@@ -54,7 +54,7 @@ public class AuthController : ControllerBase
 	[Route("test")]
 	public async Task<ActionResult> Test(IFormFile file)
 	{
-		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+		// var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 		// using (var ms = new MemoryStream())
 		// {
@@ -62,15 +62,17 @@ public class AuthController : ControllerBase
 		// var fileBytes = ms.ToArray();
 
 		// var stream = file.OpenReadStream();
-		var name = Guid.NewGuid().ToString();
-		var args = new PutObjectArgs()
-			.WithBucket(userId)
-			.WithObject(name)
-			.WithObjectSize(file.Length)
-			.WithStreamData(file.OpenReadStream());
-		await _minioClient.PutObjectAsync(args);
+		// 		var name = Guid.NewGuid().ToString();
+		// 		var args = new PutObjectArgs()
+		// 			.WithBucket(userId)
+		// 			.WithObject(name)
+		// 			.WithObjectSize(file.Length)
+		// 			.WithStreamData(file.OpenReadStream());
+		// 		await _minioClient.PutObjectAsync(args);
+		// 
+		// 		return Ok($"localhost:9000/{userId}/{name}");
 
-		return Ok($"localhost:9000/{userId}/{name}");
+		return Ok();
 	}
 
 	[HttpPost]
@@ -87,12 +89,8 @@ public class AuthController : ControllerBase
 		if (_dbContext.Users.Find(f => f.EmailAddress == request.EmailAddress).Any())
 			return BadRequest(_strings.GetErrorMessage(Errors.EMAIL_EXISTS));
 
-		if (request.Password.Length < 8
-			|| request.Password.Contains(StringUtils.Symbols)
-			|| request.Password.Contains(StringUtils.Digits)
-			|| request.Password.Contains(StringUtils.LowerAlphabets)
-			|| request.Password.Contains(StringUtils.UpperAlphabets))
-			return BadRequest(_strings.GetErrorMessage(Errors.WEAK_PASSWORD));
+		if (request.Password.Length != 128)
+			return BadRequest(Errors.INVALID_PASSWORD_LENGTH);
 
 		var salt = StringUtils.GenerateSalt().GetSHA256()[..32];
 		var hashedPassword = (request.Password + salt).GetSHA512();
