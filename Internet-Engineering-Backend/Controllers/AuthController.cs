@@ -19,13 +19,11 @@ public class AuthController : ControllerBase
 {
 	private readonly IMinioClient _minioClient;
 	private readonly DbContext _dbContext;
-	private readonly StringsManager _strings;
 
-	public AuthController(IMinioClient minioClient, DbContext dbContext, StringsManager strings)
+	public AuthController(IMinioClient minioClient, DbContext dbContext)
 	{
 		_minioClient = minioClient;
 		_dbContext = dbContext;
-		_strings = strings;
 	}
 
 	[HttpPost]
@@ -33,11 +31,11 @@ public class AuthController : ControllerBase
 	public async Task<ActionResult> Login(LoginRequest request)
 	{
 		var user = _dbContext.Users.Find(f => f.Username == request.Username).FirstOrDefault();
-		if (user == null) return BadRequest(_strings.GetErrorMessage(Errors.INVALID_LOGIN));
+		if (user == null) return this.ErrorMessage(Errors.INVALID_LOGIN);
 
 		var hashedPassword = (request.Password + user.Salt).GetSHA512();
-		if (hashedPassword == user.Password)
-			return BadRequest(_strings.GetErrorMessage(Errors.INVALID_LOGIN));
+		if (hashedPassword != user.Password)
+			return this.ErrorMessage(Errors.INVALID_LOGIN);
 
 		var claims = new List<Claim>
 		{
@@ -81,16 +79,16 @@ public class AuthController : ControllerBase
 	{
 		var systemSettings = _dbContext.SystemSettings.Find(f => true).First();
 		if (!systemSettings.CanRegister)
-			return BadRequest(_strings.GetErrorMessage(Errors.REGISTRATION_CLOSED));
+			return this.ErrorMessage(Errors.REGISTRATION_CLOSED);
 
 		if (_dbContext.Users.Find(f => f.Username == request.Username).Any())
-			return BadRequest(_strings.GetErrorMessage(Errors.USERNAME_EXISTS));
+			return this.ErrorMessage(Errors.USERNAME_EXISTS);
 
 		if (_dbContext.Users.Find(f => f.EmailAddress == request.EmailAddress).Any())
-			return BadRequest(_strings.GetErrorMessage(Errors.EMAIL_EXISTS));
+			return this.ErrorMessage(Errors.EMAIL_EXISTS);
 
 		if (request.Password.Length != 128)
-			return BadRequest(Errors.INVALID_PASSWORD_LENGTH);
+			return this.ErrorMessage(Errors.INVALID_PASSWORD_LENGTH);
 
 		var salt = StringUtils.GenerateSalt().GetSHA256()[..32];
 		var hashedPassword = (request.Password + salt).GetSHA512();

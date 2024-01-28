@@ -5,12 +5,12 @@ namespace Internet_Engineering_Backend.Resources;
 
 public class StringsManager
 {
-	private readonly ResourceManager _errors = new ResourceManager("Internet_Engineering_Backend.Resources.Errors", Assembly.GetExecutingAssembly());
+	private static readonly ResourceManager _errors = new ResourceManager("Internet_Engineering_Backend.Resources.Errors", Assembly.GetExecutingAssembly());
 
-	public string GetErrorMessage(Errors key)
+	public static string GetErrorMessage(Errors key)
 		=> GetStringFromResource(_errors, key.ToString(), "خطای سیستمی رخ داده است", "System Error");
 
-	private string GetStringFromResource(ResourceManager resource, string key, string defaultPersian, string defaultEnglish)
+	private static string GetStringFromResource(ResourceManager resource, string key, string defaultPersian, string defaultEnglish)
 	{
 		try
 		{
@@ -21,7 +21,6 @@ public class StringsManager
 		catch (Exception)
 		{ }
 
-		if (Thread.CurrentThread.Name == "en-US") return defaultEnglish;
-		return defaultPersian;
+		return key;
 	}
 }

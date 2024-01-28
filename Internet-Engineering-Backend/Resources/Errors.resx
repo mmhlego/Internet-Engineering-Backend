@@ -121,4 +121,32 @@
     <value>Invalid username or password</value>
     <comment/>
   </data>
+  <data name="INVALID_EMAIL" xml:space="preserve">
+    <value>Email address is invalid</value>
+    <comment/>
+  </data>
+  <data name="USERNAME_EXISTS" xml:space="preserve">
+    <value>Username already exists</value>
+    <comment/>
+  </data>
+  <data name="EMAIL_EXISTS" xml:space="preserve">
+    <value>Email address already exists</value>
+    <comment/>
+  </data>
+  <data name="REGISTRATION_CLOSED" xml:space="preserve">
+    <value>Registration is currently not allowed</value>
+    <comment/>
+  </data>
+  <data name="USER_NOT_FOUND" xml:space="preserve">
+    <value>Requested user was not found</value>
+    <comment/>
+  </data>
+  <data name="INVALID_KEY_LENGTH" xml:space="preserve">
+    <value>Key format is invalid</value>
+    <comment/>
+  </data>
+  <data name="INVALID_PASSWORD_LENGTH" xml:space="preserve">
+    <value>Password format is invalid</value>
+    <comment/>
+  </data>
 </root>

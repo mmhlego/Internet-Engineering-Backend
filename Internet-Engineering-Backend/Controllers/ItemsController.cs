@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using Internet_Engineering_Backend.Data;
-using Internet_Engineering_Backend.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Minio;
@@ -15,13 +14,11 @@ public class ItemsController : ControllerBase
 {
 	private readonly IMinioClient _minioClient;
 	private readonly DbContext _dbContext;
-	private readonly StringsManager _strings;
 
-	public ItemsController(IMinioClient minioClient, DbContext dbContext, StringsManager strings)
+	public ItemsController(IMinioClient minioClient, DbContext dbContext)
 	{
 		_minioClient = minioClient;
 		_dbContext = dbContext;
-		_strings = strings;
 	}
 
 	#region Folders

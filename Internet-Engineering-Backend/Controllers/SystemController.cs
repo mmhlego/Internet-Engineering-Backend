@@ -17,13 +17,11 @@ public class SystemController : ControllerBase
 {
 	private readonly IMinioClient _minioClient;
 	private readonly DbContext _dbContext;
-	private readonly StringsManager _strings;
 
-	public SystemController(IMinioClient minioClient, DbContext dbContext, StringsManager strings)
+	public SystemController(IMinioClient minioClient, DbContext dbContext)
 	{
 		_minioClient = minioClient;
 		_dbContext = dbContext;
-		_strings = strings;
 	}
 
 	[HttpGet]
@@ -50,16 +48,16 @@ public class SystemController : ControllerBase
 	{
 		var systemSettings = _dbContext.SystemSettings.Find(f => true).First();
 		if (!systemSettings.CanRegister)
-			return BadRequest(_strings.GetErrorMessage(Errors.REGISTRATION_CLOSED));
+			return this.ErrorMessage(Errors.REGISTRATION_CLOSED);
 
 		if (_dbContext.Users.Find(f => f.Username == request.Username).Any())
-			return BadRequest(_strings.GetErrorMessage(Errors.USERNAME_EXISTS));
+			return this.ErrorMessage(Errors.USERNAME_EXISTS);
 
 		if (_dbContext.Users.Find(f => f.EmailAddress == request.EmailAddress).Any())
-			return BadRequest(_strings.GetErrorMessage(Errors.EMAIL_EXISTS));
+			return this.ErrorMessage(Errors.EMAIL_EXISTS);
 
 		if (request.Password.Length != 128)
-			return BadRequest(Errors.INVALID_PASSWORD_LENGTH);
+			return this.ErrorMessage(Errors.INVALID_PASSWORD_LENGTH);
 
 		var salt = StringUtils.GenerateSalt().GetSHA256()[..32];
 		var hashedPassword = (request.Password + salt).GetSHA512();
@@ -104,7 +102,7 @@ public class SystemController : ControllerBase
 	{
 		var user = _dbContext.Users.Find(f => f.Role == UserRoles.Basic && f.Id.ToString() == id).FirstOrDefault();
 
-		if (user == null) return BadRequest(Errors.USER_NOT_FOUND);
+		if (user == null) return this.ErrorMessage(Errors.USER_NOT_FOUND);
 
 		user.Restricted = request.NewStatus;
 		_dbContext.Users.ReplaceOne(f => f.Id == user.Id, user);

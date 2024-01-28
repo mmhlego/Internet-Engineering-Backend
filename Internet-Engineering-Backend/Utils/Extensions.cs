@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using Internet_Engineering_Backend.Resources;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Internet_Engineering_Backend;
 
@@ -35,6 +37,14 @@ public static class Extensions
 
 	public static string ToHexString(this byte[] array) =>
 		BitConverter.ToString(array).Replace("-", "");
+
+	#endregion
+
+
+	#region Byte Array Extensions
+
+	public static BadRequestObjectResult ErrorMessage(this ControllerBase controller, Errors error) =>
+		controller.BadRequest(StringsManager.GetErrorMessage(error));
 
 	#endregion
 }

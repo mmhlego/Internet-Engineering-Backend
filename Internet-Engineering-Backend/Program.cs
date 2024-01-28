@@ -19,7 +19,6 @@ builder.Services.AddSingleton(
 		.Build()
 );
 
-builder.Services.AddSingleton<StringsManager>();
 builder.Services.AddTransient<DbContext>();
 
 builder.Services.AddControllers();

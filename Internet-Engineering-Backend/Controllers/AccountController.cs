@@ -14,12 +14,10 @@ namespace Internet_Engineering_Backend.Controllers;
 public class AccountController : ControllerBase
 {
 	private readonly DbContext _dbContext;
-	private readonly StringsManager _strings;
 
-	public AccountController(DbContext dbContext, StringsManager strings)
+	public AccountController(DbContext dbContext)
 	{
 		_dbContext = dbContext;
-		_strings = strings;
 	}
 
 	[HttpGet]
@@ -47,10 +45,10 @@ public class AccountController : ControllerBase
 		var user = _dbContext.Users.Find(f => f.Id.ToString() == userId).First();
 
 		if (_dbContext.Users.Find(f => f.Id != userId && f.Username == request.Username).Any())
-			return BadRequest(_strings.GetErrorMessage(Errors.USERNAME_EXISTS));
+			return this.ErrorMessage(Errors.USERNAME_EXISTS);
 
 		if (_dbContext.Users.Find(f => f.Id != userId && f.EmailAddress == request.EmailAddress).Any())
-			return BadRequest(_strings.GetErrorMessage(Errors.EMAIL_EXISTS));
+			return this.ErrorMessage(Errors.EMAIL_EXISTS);
 
 		user.Username = request.Username;
 		user.FirstName = request.FirstName;
@@ -84,7 +82,7 @@ public class AccountController : ControllerBase
 		var user = _dbContext.Users.Find(f => f.Id.ToString() == userId).First();
 
 		if (request.Key.Length != 32)
-			return BadRequest(Errors.INVALID_KEY_LENGTH);
+			return this.ErrorMessage(Errors.INVALID_KEY_LENGTH);
 
 		user.EncryptionKey = request.Key;
 		_dbContext.Users.ReplaceOne(f => f.Id == user.Id, user);
@@ -100,7 +98,7 @@ public class AccountController : ControllerBase
 		var user = _dbContext.Users.Find(f => f.Id.ToString() == userId).First();
 
 		if (request.NewPassword.Length != 128)
-			return BadRequest(Errors.INVALID_PASSWORD_LENGTH);
+			return this.ErrorMessage(Errors.INVALID_PASSWORD_LENGTH);
 
 		user.Password = (request.NewPassword + user.Salt).GetSHA512();
 		_dbContext.Users.ReplaceOne(f => f.Id == user.Id, user);
