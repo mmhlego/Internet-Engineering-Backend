@@ -48,3 +48,28 @@ public class CreateFolderRequest
 	public required string Name { get; set; }
 	public required string ParentId { get; set; }
 }
+
+public class UploadFileRequest
+{
+	public required string Name { get; set; }
+	public required string ParentId { get; set; }
+	public required string Extension { get; set; }
+	public required bool IsEncrypted { get; set; }
+	public required IFormFile File { get; set; }
+}
+
+public class MoveFileRequest
+{
+	public required string TargetFolderId { get; set; }
+}
+
+public class ShareFileRequest
+{
+	public required string TargetUser { get; set; }
+}
+
+public class CustomShareRequest
+{
+	public required int Usage { get; set; }
+	public required DateTime ExpiryDate { get; set; }
+}

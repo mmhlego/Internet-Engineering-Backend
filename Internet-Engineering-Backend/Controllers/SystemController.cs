@@ -33,7 +33,7 @@ public class SystemController : ControllerBase
 			Username = s.Username,
 			FirstName = s.FirstName,
 			LastName = s.LastName,
-			EmailAddress = s.Password,
+			EmailAddress = s.EmailAddress,
 			Restricted = s.Restricted,
 		});
 
@@ -74,8 +74,6 @@ public class SystemController : ControllerBase
 		};
 
 		_dbContext.Users.InsertOne(newUser);
-
-		// TODO: Create key for user
 
 		var bucketName = newUser.Id.ToString();
 		var makeArgs = new MakeBucketArgs().WithBucket(bucketName);

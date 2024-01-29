@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
 		if (user == null) return this.ErrorMessage(Errors.INVALID_LOGIN);
 
 		var hashedPassword = (request.Password + user.Salt).GetSHA512();
-		if (hashedPassword != user.Password)
+		if (!hashedPassword.Equals(user.Password, StringComparison.CurrentCultureIgnoreCase))
 			return this.ErrorMessage(Errors.INVALID_LOGIN);
 
 		var claims = new List<Claim>

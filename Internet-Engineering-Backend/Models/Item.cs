@@ -34,7 +34,7 @@ public class File : Item
 {
 	public bool IsEncrypted { get; set; } = true;
 	public required long ContentSize { get; set; }
-	public required string ContentUrl { get; set; }
+	public required string ObjectName { get; set; }
 }
 
 public class Folder : Item

@@ -5,6 +5,7 @@ public class Pagination<T>
 	public required int PerPage { get; set; }
 	public required int Page { get; set; }
 	public required int TotalPages { get; set; }
+	public required int ItemsCount { get; set; }
 	public required List<T> Data { get; set; }
 
 	public static Pagination<T> Paginate(int page, int perPage, List<T> data)
@@ -18,6 +19,7 @@ public class Pagination<T>
 				Page = 0,
 				PerPage = perPage,
 				TotalPages = 0,
+				ItemsCount = 0,
 				Data = new List<T>()
 			};
 
@@ -28,6 +30,7 @@ public class Pagination<T>
 			Page = page,
 			PerPage = perPage,
 			TotalPages = totalPages,
+			ItemsCount = data.Count,
 			Data = data.Skip((page - 1) * perPage).Take(perPage).ToList()
 		};
 	}
