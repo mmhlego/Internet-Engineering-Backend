@@ -39,6 +39,7 @@ public class ItemResponse
 	public required string IconColor { get; set; }
 	public required string ItemType { get; set; }
 	public required bool IsFavorite { get; set; }
+	public required long Size { get; set; }
 }
 
 public class ItemInfoResponse : ItemResponse
@@ -46,4 +47,10 @@ public class ItemInfoResponse : ItemResponse
 	public required List<string> Tags { get; set; }
 	public required string Description { get; set; }
 	public required bool IsShared { get; set; }
+}
+
+public class FolderContentResponse : Pagination<ItemResponse>
+{
+	public required string SortOrder { get; set; }
+	public required bool SortAscending { get; set; }
 }

@@ -111,13 +111,28 @@ public class ItemsController : ControllerBase
 
 	[HttpGet]
 	[Route("folders/{id}")]
-	public ActionResult<Pagination<ItemResponse>> GetFolderContent([FromRoute] string id, [FromQuery] int page, [FromQuery] int perPage, [FromQuery] string searchText = "", [FromQuery] bool onlyFolders = false)
+	public ActionResult<FolderContentResponse> GetFolderContent([FromRoute] string id, [FromQuery] int page, [FromQuery] int perPage, [FromQuery] string searchText = "", [FromQuery] bool onlyFolders = false, [FromQuery] string sort = "", [FromQuery] bool ascending = false)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 		var folder = _dbContext.Folders.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
 
 		if (folder == null) return this.ErrorMessage(Errors.FOLDER_NOT_FOUND);
+
+		if (sort.Equals("name"))
+		{
+			folder.SortOrder = SortOrders.Name;
+			folder.SortAscending = ascending;
+
+			_dbContext.Folders.ReplaceOne(f => f.Id == folder.Id, folder);
+		}
+		else if (sort.Equals("date"))
+		{
+			folder.SortOrder = SortOrders.CreationDate;
+			folder.SortAscending = ascending;
+
+			_dbContext.Folders.ReplaceOne(f => f.Id == folder.Id, folder);
+		}
 
 		var items = _dbContext.Folders.Find(f =>
 			f.ParentId == folder.Id &&
@@ -132,6 +147,7 @@ public class ItemsController : ControllerBase
 			CreationDate = s.CreationDate,
 			IsFavorite = s.IsFavorite,
 			IconColor = s.IconColor,
+			Size = 0,
 		}).ToList();
 
 		if (!onlyFolders)
@@ -149,12 +165,29 @@ public class ItemsController : ControllerBase
 				CreationDate = s.CreationDate,
 				IsFavorite = s.IsFavorite,
 				IconColor = s.IconColor,
+				Size = s.ContentSize,
 			});
 
 			items.AddRange(files);
 		}
 
-		var response = Pagination<ItemResponse>.Paginate(page, perPage, items);
+		items.Sort(
+			folder.SortOrder == SortOrders.Name
+			? (folder.SortAscending ? Extensions.CompareNameAsc : Extensions.CompareNameDesc)
+			: (folder.SortAscending ? Extensions.CompareDateAsc : Extensions.CompareDateDesc)
+		);
+
+		var data = Pagination<ItemResponse>.Paginate(page, perPage, items);
+		var response = new FolderContentResponse
+		{
+			Data = data.Data,
+			ItemsCount = data.ItemsCount,
+			Page = data.Page,
+			PerPage = data.PerPage,
+			TotalPages = data.TotalPages,
+			SortAscending = folder.SortAscending,
+			SortOrder = folder.SortOrder == SortOrders.Name ? "name" : "date",
+		};
 
 		return Ok(response);
 	}
@@ -190,6 +223,7 @@ public class ItemsController : ControllerBase
 					CreationDate = item.ShareDate,
 					IsFavorite = file.IsFavorite,
 					IconColor = file.IconColor,
+					Size = file.ContentSize,
 				});
 			}
 		});
@@ -243,6 +277,7 @@ public class ItemsController : ControllerBase
 			CreationDate = s.CreationDate,
 			IsFavorite = s.IsFavorite,
 			IconColor = s.IconColor,
+			Size = 0,
 		}).ToList();
 
 		var files = _dbContext.Files.Find(f => f.OwnerId == userId && f.IsFavorite).ToList().Select(s => new ItemResponse
@@ -253,6 +288,7 @@ public class ItemsController : ControllerBase
 			CreationDate = s.CreationDate,
 			IsFavorite = s.IsFavorite,
 			IconColor = s.IconColor,
+			Size = s.ContentSize,
 		});
 
 		items.AddRange(files);
@@ -274,6 +310,7 @@ public class ItemsController : ControllerBase
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
 		bool isShared = false;
+		long size = 0;
 		Item? item = null;
 		if (isFolder)
 			item = _dbContext.Folders.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
@@ -282,6 +319,7 @@ public class ItemsController : ControllerBase
 			var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
 			item = file;
 			isShared = !file.IsEncrypted;
+			size = file.ContentSize;
 		}
 
 		if (item == null)
@@ -298,6 +336,7 @@ public class ItemsController : ControllerBase
 			Description = item.Description,
 			Tags = item.Tags,
 			IsShared = isShared,
+			Size = size,
 		};
 
 		return Ok(info);
@@ -457,6 +496,24 @@ public class ItemsController : ControllerBase
 		};
 
 		_dbContext.Files.InsertOne(newFile);
+
+		return Ok();
+	}
+
+	[HttpDelete]
+	[Route("files/{id}")]
+	public async Task<ActionResult<object>> DeleteFile([FromRoute] string id, [FromBody] MoveFileRequest request)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		if (file == null)
+			return this.ErrorMessage(Errors.FILE_NOT_FOUND);
+
+		var args = new RemoveObjectArgs().WithBucket(userId).WithObject(file.ObjectName);
+		await _minioClient.RemoveObjectAsync(args);
+
+		_dbContext.Files.DeleteOne(f => f.Id == file.Id);
 
 		return Ok();
 	}

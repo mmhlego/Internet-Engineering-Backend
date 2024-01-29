@@ -41,12 +41,11 @@ public class Folder : Item
 {
 	public required int Depth { get; set; }
 	public SortOrders SortOrder { get; set; } = SortOrders.Name;
+	public bool SortAscending { get; set; } = false;
 }
 
 public enum SortOrders
 {
 	Name,
 	CreationDate,
-	ModificationDate,
-	ChangeVisibility,
 }

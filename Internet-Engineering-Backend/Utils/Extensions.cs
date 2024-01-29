@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using Internet_Engineering_Backend.Models;
 using Internet_Engineering_Backend.Resources;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,6 +46,19 @@ public static class Extensions
 
 	public static BadRequestObjectResult ErrorMessage(this ControllerBase controller, Errors error) =>
 		controller.BadRequest(StringsManager.GetErrorMessage(error));
+
+	#endregion
+
+
+	#region Item Response Comparison
+
+	public static int CompareNameAsc(ItemResponse item1, ItemResponse item2) => item1.Name.CompareTo(item2.Name);
+
+	public static int CompareNameDesc(ItemResponse item1, ItemResponse item2) => item2.Name.CompareTo(item1.Name);
+
+	public static int CompareDateAsc(ItemResponse item1, ItemResponse item2) => item1.CreationDate.CompareTo(item2.CreationDate);
+
+	public static int CompareDateDesc(ItemResponse item1, ItemResponse item2) => item2.CreationDate.CompareTo(item1.CreationDate);
 
 	#endregion
 }
