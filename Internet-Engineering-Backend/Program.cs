@@ -1,6 +1,5 @@
 using Internet_Engineering_Backend.Data;
 using Internet_Engineering_Backend.Middlewares;
-using Internet_Engineering_Backend.Resources;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Minio;
 
@@ -13,8 +12,8 @@ builder.Services.AddSingleton(
 	new MinioClient()
 		.WithEndpoint(builder.Configuration.GetSection("MinioSettings:Address").Get<string>())
 		.WithCredentials(
-			Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY"),
-			Environment.GetEnvironmentVariable("MINIO_SECRET_KEY")
+			Environment.GetEnvironmentVariable("MINIO_ROOT_USER"),
+			Environment.GetEnvironmentVariable("MINIO_ROOT_PASSWORD")
 		)
 		.Build()
 );
@@ -40,12 +39,11 @@ builder.Services.AddAuthentication(options =>
 	});
 builder.Services.AddAuthorization();
 
-string[] allowedHosts = (builder.Configuration.GetSection("AllowedHosts").Value ?? "").Split(";");
 builder.Services.AddCors(options =>
 {
 	options.AddPolicy("CorsPolicy",
 		builder => builder.SetIsOriginAllowedToAllowWildcardSubdomains()
-						   .WithOrigins(allowedHosts)
+						   .SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost" || new Uri(origin).Host == "127.0.0.1")
 						   .AllowCredentials()
 						   .AllowAnyMethod()
 						   .AllowAnyHeader()

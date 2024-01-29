@@ -148,6 +148,7 @@ public class ItemsController : ControllerBase
 			IsFavorite = s.IsFavorite,
 			IconColor = s.IconColor,
 			Size = 0,
+			IsShared = false,
 		}).ToList();
 
 		if (!onlyFolders)
@@ -166,6 +167,7 @@ public class ItemsController : ControllerBase
 				IsFavorite = s.IsFavorite,
 				IconColor = s.IconColor,
 				Size = s.ContentSize,
+				IsShared = !s.IsEncrypted,
 			});
 
 			items.AddRange(files);
@@ -224,6 +226,7 @@ public class ItemsController : ControllerBase
 					IsFavorite = file.IsFavorite,
 					IconColor = file.IconColor,
 					Size = file.ContentSize,
+					IsShared = !file.IsEncrypted,
 				});
 			}
 		});
@@ -278,6 +281,7 @@ public class ItemsController : ControllerBase
 			IsFavorite = s.IsFavorite,
 			IconColor = s.IconColor,
 			Size = 0,
+			IsShared = false,
 		}).ToList();
 
 		var files = _dbContext.Files.Find(f => f.OwnerId == userId && f.IsFavorite).ToList().Select(s => new ItemResponse
@@ -289,6 +293,7 @@ public class ItemsController : ControllerBase
 			IsFavorite = s.IsFavorite,
 			IconColor = s.IconColor,
 			Size = s.ContentSize,
+			IsShared = !s.IsEncrypted,
 		});
 
 		items.AddRange(files);
@@ -514,6 +519,8 @@ public class ItemsController : ControllerBase
 		await _minioClient.RemoveObjectAsync(args);
 
 		_dbContext.Files.DeleteOne(f => f.Id == file.Id);
+		_dbContext.ItemsSharing.DeleteMany(f => f.ItemId == file.Id);
+		_dbContext.CustomLinks.DeleteMany(f => f.ItemId == file.Id);
 
 		return Ok();
 	}

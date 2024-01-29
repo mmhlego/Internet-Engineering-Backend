@@ -20,16 +20,33 @@ services:
             - 27017:27017
         volumes:
             - mongo_data:/data/db
-        env_file: .env
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: pTn23w131qXLLOwL
 
     ie-backend:
-        image: internetengineeringbackend
+        image: ie.backend
         container_name: IE-Backend
         build:
             context: .
             dockerfile: Internet-Engineering-Backend/Dockerfile
         ports:
             - ${SERVER_PORT}:80
+        env_file: .env
+        depends_on:
+            - minio
+            - mongodb
+
+    ie-frontend:
+        image: ie.frontend
+        container_name: IE-Frontend
+        environment:
+            VITE_BASE_URL: http://ie-backend:80/api
+        build:
+            context: .
+            dockerfile: Internet-Engineering-Backend/Dockerfile
+        ports:
+            - ${FRONT_PORT}:80
         env_file: .env
         depends_on:
             - minio
