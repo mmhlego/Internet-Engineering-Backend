@@ -119,7 +119,7 @@ public class SystemController : ControllerBase
 		return Ok(new StorageUsageResponse
 		{
 			TotalUsage = totalUsage,
-			TotalSpace = availableSpace + totalUsage,
+			TotalSpace = availableSpace * 1000 + totalUsage,
 		});
 	}
 
