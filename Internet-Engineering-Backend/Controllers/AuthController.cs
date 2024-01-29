@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
 
 	[HttpPost]
 	[Route("login")]
-	public async Task<ActionResult> Login(LoginRequest request)
+	public async Task<ActionResult<object>> Login(LoginRequest request)
 	{
 		var user = _dbContext.Users.Find(f => f.Username == request.Username).FirstOrDefault();
 		if (user == null) return this.ErrorMessage(Errors.INVALID_LOGIN);
@@ -35,6 +35,9 @@ public class AuthController : ControllerBase
 		var hashedPassword = (request.Password + user.Salt).GetSHA512();
 		if (!hashedPassword.Equals(user.Password, StringComparison.CurrentCultureIgnoreCase))
 			return this.ErrorMessage(Errors.INVALID_LOGIN);
+
+		if (user.IsRestricted)
+			return this.ErrorMessage(Errors.USER_RESTRICTED);
 
 		var claims = new List<Claim>
 		{
@@ -49,7 +52,7 @@ public class AuthController : ControllerBase
 
 	[HttpPost]
 	[Route("register")]
-	public async Task<ActionResult> Register(RegisterRequest request)
+	public async Task<ActionResult<object>> Register(RegisterRequest request)
 	{
 		var systemSettings = _dbContext.SystemSettings.Find(f => true).First();
 		if (!systemSettings.CanRegister)
@@ -110,7 +113,7 @@ public class AuthController : ControllerBase
 
 	[HttpGet]
 	[Route("logout")]
-	public async Task<ActionResult> Logout()
+	public async Task<ActionResult<object>> Logout()
 	{
 		await HttpContext.SignOutAsync();
 

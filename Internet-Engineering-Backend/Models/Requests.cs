@@ -73,3 +73,15 @@ public class CustomShareRequest
 	public required int Usage { get; set; }
 	public required DateTime ExpiryDate { get; set; }
 }
+
+public class UpdateInfoRequest
+{
+	public required string Name { get; set; }
+	public required List<string> Tags { get; set; }
+	public required string Description { get; set; }
+}
+
+public class CustomizeRequest
+{
+	public required string Color { get; set; }
+}

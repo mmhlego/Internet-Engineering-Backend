@@ -29,7 +29,7 @@ public class ItemsController : ControllerBase
 
 	[HttpGet]
 	[Route("storage-usage")]
-	public ActionResult<Pagination<ItemResponse>> GetStorageUsage()
+	public ActionResult<StorageUsageResponse> GetStorageUsage()
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -50,7 +50,7 @@ public class ItemsController : ControllerBase
 
 	[HttpPost]
 	[Route("folders")]
-	public ActionResult CreateFolder([FromBody] CreateFolderRequest request)
+	public ActionResult<object> CreateFolder([FromBody] CreateFolderRequest request)
 	{
 		if (request.Name.Length < 1) return this.ErrorMessage(Errors.INVALID_NAME);
 
@@ -106,7 +106,7 @@ public class ItemsController : ControllerBase
 			_dbContext.Folders.InsertOne(rootFolder);
 		}
 
-		return Ok(rootFolder.Id);
+		return Ok(rootFolder.Id.ToString());
 	}
 
 	[HttpGet]
@@ -303,12 +303,36 @@ public class ItemsController : ControllerBase
 		return Ok(info);
 	}
 
-	// TODO
 	[HttpPut]
 	[Route("items/{id}/info")]
-	public ActionResult UpdateItemInfo([FromRoute] string id, [FromQuery] bool isFolder) => throw new NotImplementedException();
+	public ActionResult<object> UpdateItemInfo([FromRoute] string id, [FromQuery] bool isFolder, [FromBody] UpdateInfoRequest request)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-	// TODO
+		if (isFolder)
+		{
+			var folder = _dbContext.Folders.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+			if (folder == null)
+				return this.ErrorMessage(Errors.FOLDER_NOT_FOUND);
+
+			folder.Name = request.Name;
+			folder.Tags = request.Tags;
+			folder.Description = request.Description;
+
+			_dbContext.Folders.ReplaceOne(f => f.Id == folder.Id, folder);
+		}
+
+		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+
+		file.Name = request.Name;
+		file.Tags = request.Tags;
+		file.Description = request.Description;
+
+		_dbContext.Files.ReplaceOne(f => f.Id == file.Id, file);
+
+		return Ok();
+	}
+
 	[HttpGet]
 	[Route("items/{id}/full-path")]
 	public ActionResult<string> GetFullPath([FromRoute] string id, [FromQuery] bool isFolder)
@@ -324,25 +348,62 @@ public class ItemsController : ControllerBase
 		if (item == null)
 			return this.ErrorMessage(isFolder ? Errors.FOLDER_NOT_FOUND : Errors.FILE_NOT_FOUND);
 
-		var fullPath = "/" + item.Name;
+		var fullPath = "";
 		while (!string.IsNullOrEmpty(item.ParentId))
 		{
+			fullPath = "/" + item.Name + fullPath;
 			item = _dbContext.Folders.Find(f => f.Id.ToString() == item.ParentId).First();
-			fullPath += "/" + item.Name;
 		}
+		if (isFolder) fullPath += "/";
 
 		return Ok(fullPath);
 	}
 
-	// TODO
 	[HttpPost]
 	[Route("items/{id}/favorite")]
-	public ActionResult SetFavorite([FromRoute] string id, [FromRoute] bool isFolder) => throw new NotImplementedException();
+	public ActionResult<object> SetFavorite([FromRoute] string id, [FromQuery] bool isFolder)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-	// TODO
+		if (isFolder)
+		{
+			var folder = _dbContext.Folders.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+			if (folder == null)
+				return this.ErrorMessage(Errors.FOLDER_NOT_FOUND);
+
+			folder.IsFavorite = !folder.IsFavorite;
+			_dbContext.Folders.ReplaceOne(f => f.Id == folder.Id, folder);
+		}
+
+		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		file.IsFavorite = !file.IsFavorite;
+		_dbContext.Files.ReplaceOne(f => f.Id == file.Id, file);
+
+		return Ok();
+	}
+
 	[HttpPost]
 	[Route("items/{id}/customize")]
-	public ActionResult CustomizeItem([FromRoute] string id, [FromRoute] bool isFolder) => throw new NotImplementedException();
+	public ActionResult<object> CustomizeItem([FromRoute] string id, [FromQuery] bool isFolder, [FromBody] CustomizeRequest request)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+		if (isFolder)
+		{
+			var folder = _dbContext.Folders.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+			if (folder == null)
+				return this.ErrorMessage(Errors.FOLDER_NOT_FOUND);
+
+			folder.IconColor = request.Color;
+			_dbContext.Folders.ReplaceOne(f => f.Id == folder.Id, folder);
+		}
+
+		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		file.IconColor = request.Color;
+		_dbContext.Files.ReplaceOne(f => f.Id == file.Id, file);
+
+		return Ok();
+	}
 
 	#endregion
 
@@ -351,7 +412,7 @@ public class ItemsController : ControllerBase
 
 	[HttpPost]
 	[Route("files")]
-	public async Task<ActionResult> UploadFile([FromForm] UploadFileRequest request)
+	public async Task<ActionResult<object>> UploadFile([FromForm] UploadFileRequest request)
 	{
 		if (request.Name.Length < 1) return this.ErrorMessage(Errors.INVALID_NAME);
 
@@ -378,13 +439,19 @@ public class ItemsController : ControllerBase
 
 		var res = await _minioClient.PutObjectAsync(putObjectArgs);
 
+		var type = ItemTypes.Others;
+		if (new[] { "jpeg", "jpg", "png" }.Contains(request.Extension)) type = ItemTypes.Image;
+		else if (new[] { "mp3", "m4a" }.Contains(request.Extension)) type = ItemTypes.Audio;
+		else if (new[] { "mp4", "mkv", "mov" }.Contains(request.Extension)) type = ItemTypes.Video;
+		else if (new[] { "txt", "docx", "pptx", "xlsx" }.Contains(request.Extension)) type = ItemTypes.Document;
+
 		var newFile = new Models.File
 		{
 			Name = request.Name,
 			OwnerId = userId,
 			ParentId = folder.Id,
 			ContentSize = request.File.Length,
-			ItemType = ItemTypes.Others,
+			ItemType = type,
 			ObjectName = objectId,
 			IsEncrypted = request.IsEncrypted,
 		};
@@ -412,7 +479,7 @@ public class ItemsController : ControllerBase
 
 	[HttpPost]
 	[Route("files/{id}/move")]
-	public ActionResult MoveFile([FromRoute] string id, [FromBody] MoveFileRequest request)
+	public ActionResult<object> MoveFile([FromRoute] string id, [FromBody] MoveFileRequest request)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -433,7 +500,7 @@ public class ItemsController : ControllerBase
 	[HttpPost]
 	[Route("files/{id}/share/user")]
 	[Authorize]
-	public ActionResult ShareFileWithUser([FromRoute] string id, [FromBody] ShareFileRequest request)
+	public ActionResult<object> ShareFileWithUser([FromRoute] string id, [FromBody] ShareFileRequest request)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 

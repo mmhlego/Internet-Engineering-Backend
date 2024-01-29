@@ -16,7 +16,7 @@ public class User
 	public required string LastName { get; set; }
 	public required string EmailAddress { get; set; }
 	public UserRoles Role { get; set; } = UserRoles.Basic;
-	public bool Restricted { get; set; } = false;
+	public bool IsRestricted { get; set; } = false;
 
 	// Protected with password
 	public required string EncryptionKey { get; set; }

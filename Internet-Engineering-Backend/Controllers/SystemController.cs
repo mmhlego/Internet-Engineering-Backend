@@ -35,7 +35,7 @@ public class SystemController : ControllerBase
 			FirstName = s.FirstName,
 			LastName = s.LastName,
 			EmailAddress = s.EmailAddress,
-			Restricted = s.Restricted,
+			Restricted = s.IsRestricted,
 		});
 
 		var res = Pagination<UserResponse>.Paginate(page, perPage, users.ToList());
@@ -45,7 +45,7 @@ public class SystemController : ControllerBase
 
 	[HttpPost]
 	[Route("users")]
-	public async Task<ActionResult> AddUser([FromBody] RegisterRequest request)
+	public async Task<ActionResult<object>> AddUser([FromBody] RegisterRequest request)
 	{
 		if (_dbContext.Users.Find(f => f.Username == request.Username).Any())
 			return this.ErrorMessage(Errors.USERNAME_EXISTS);
@@ -94,13 +94,13 @@ public class SystemController : ControllerBase
 
 	[HttpPut]
 	[Route("users/{id}")]
-	public ActionResult UpdateUser([FromRoute] string id, [FromBody] ChangeRegistrationRequest request)
+	public ActionResult<object> UpdateUser([FromRoute] string id, [FromBody] ChangeRegistrationRequest request)
 	{
 		var user = _dbContext.Users.Find(f => f.Role == UserRoles.Basic && f.Id.ToString() == id).FirstOrDefault();
 
 		if (user == null) return this.ErrorMessage(Errors.USER_NOT_FOUND);
 
-		user.Restricted = request.NewStatus;
+		user.IsRestricted = request.NewStatus;
 		_dbContext.Users.ReplaceOne(f => f.Id == user.Id, user);
 
 		return Ok();

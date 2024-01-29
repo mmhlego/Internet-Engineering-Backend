@@ -39,7 +39,7 @@ public class AccountController : ControllerBase
 
 	[HttpPut]
 	[Route("profile")]
-	public ActionResult UpdateProfile([FromBody] UpdateProfileRequest request)
+	public ActionResult<object> UpdateProfile([FromBody] UpdateProfileRequest request)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 		var user = _dbContext.Users.Find(f => f.Id.ToString() == userId).First();
@@ -76,7 +76,7 @@ public class AccountController : ControllerBase
 
 	[HttpPut]
 	[Route("credentials")]
-	public ActionResult UpdateEncryptionKey([FromBody] UpdateCredentialsRequest request)
+	public ActionResult<object> UpdateEncryptionKey([FromBody] UpdateCredentialsRequest request)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 		var user = _dbContext.Users.Find(f => f.Id.ToString() == userId).First();
@@ -89,7 +89,7 @@ public class AccountController : ControllerBase
 
 	[HttpPut]
 	[Route("change-password")]
-	public ActionResult UpdatePassword([FromBody] UpdatePasswordRequest request)
+	public ActionResult<object> UpdatePassword([FromBody] UpdatePasswordRequest request)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 		var user = _dbContext.Users.Find(f => f.Id.ToString() == userId).First();
