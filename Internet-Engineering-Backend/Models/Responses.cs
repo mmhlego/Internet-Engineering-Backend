@@ -8,6 +8,7 @@ public class StorageUsageResponse
 
 public class UserResponse
 {
+	public required string Id { get; set; }
 	public required string Username { get; set; }
 	public required string FirstName { get; set; }
 	public required string LastName { get; set; }
@@ -35,6 +36,14 @@ public class ItemResponse
 	public required string Id { get; set; }
 	public required string Name { get; set; }
 	public required DateTime CreationDate { get; set; }
-	public string IconColor { get; set; } = "#ffffff";
+	public required string IconColor { get; set; }
 	public required string ItemType { get; set; }
+	public required bool IsFavorite { get; set; }
+}
+
+public class ItemInfoResponse : ItemResponse
+{
+	public required List<string> Tags { get; set; }
+	public required string Description { get; set; }
+	public required bool IsShared { get; set; }
 }

@@ -130,6 +130,8 @@ public class ItemsController : ControllerBase
 			ItemType = s.ItemType.ToString(),
 			Name = s.Name,
 			CreationDate = s.CreationDate,
+			IsFavorite = s.IsFavorite,
+			IconColor = s.IconColor,
 		}).ToList();
 
 		if (!onlyFolders)
@@ -145,6 +147,8 @@ public class ItemsController : ControllerBase
 				ItemType = s.ItemType.ToString(),
 				Name = s.Name,
 				CreationDate = s.CreationDate,
+				IsFavorite = s.IsFavorite,
+				IconColor = s.IconColor,
 			});
 
 			items.AddRange(files);
@@ -184,6 +188,8 @@ public class ItemsController : ControllerBase
 					ItemType = file.ItemType.ToString(),
 					Name = file.Name,
 					CreationDate = item.ShareDate,
+					IsFavorite = file.IsFavorite,
+					IconColor = file.IconColor,
 				});
 			}
 		});
@@ -235,6 +241,8 @@ public class ItemsController : ControllerBase
 			ItemType = s.ItemType.ToString(),
 			Name = s.Name,
 			CreationDate = s.CreationDate,
+			IsFavorite = s.IsFavorite,
+			IconColor = s.IconColor,
 		}).ToList();
 
 		var files = _dbContext.Files.Find(f => f.OwnerId == userId && f.IsFavorite).ToList().Select(s => new ItemResponse
@@ -243,6 +251,8 @@ public class ItemsController : ControllerBase
 			ItemType = s.ItemType.ToString(),
 			Name = s.Name,
 			CreationDate = s.CreationDate,
+			IsFavorite = s.IsFavorite,
+			IconColor = s.IconColor,
 		});
 
 		items.AddRange(files);
@@ -257,10 +267,41 @@ public class ItemsController : ControllerBase
 
 	#region Items
 
-	// TODO
 	[HttpGet]
 	[Route("items/{id}/info")]
-	public ActionResult GetItemInfo([FromRoute] string id, [FromRoute] bool isFolder) => throw new NotImplementedException();
+	public ActionResult<ItemInfoResponse> GetItemInfo([FromRoute] string id, [FromRoute] bool isFolder)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+		bool isShared = false;
+		Item? item = null;
+		if (isFolder)
+			item = _dbContext.Folders.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		else
+		{
+			var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+			item = file;
+			isShared = !file.IsEncrypted;
+		}
+
+		if (item == null)
+			return this.ErrorMessage(isFolder ? Errors.FOLDER_NOT_FOUND : Errors.FILE_NOT_FOUND);
+
+		var info = new ItemInfoResponse
+		{
+			Id = item.Id,
+			ItemType = item.ItemType.ToString(),
+			Name = item.Name,
+			CreationDate = item.CreationDate,
+			IsFavorite = item.IsFavorite,
+			IconColor = item.IconColor,
+			Description = item.Description,
+			Tags = item.Tags,
+			IsShared = isShared,
+		};
+
+		return Ok(info);
+	}
 
 	// TODO
 	[HttpPut]

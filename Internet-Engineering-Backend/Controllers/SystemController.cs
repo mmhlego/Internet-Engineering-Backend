@@ -30,6 +30,7 @@ public class SystemController : ControllerBase
 	{
 		var users = _dbContext.Users.Find(f => f.Role == UserRoles.Basic).ToList().Select(s => new UserResponse
 		{
+			Id = s.Id,
 			Username = s.Username,
 			FirstName = s.FirstName,
 			LastName = s.LastName,
