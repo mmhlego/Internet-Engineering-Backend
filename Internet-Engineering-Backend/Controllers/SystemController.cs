@@ -47,10 +47,6 @@ public class SystemController : ControllerBase
 	[Route("users")]
 	public async Task<ActionResult> AddUser([FromBody] RegisterRequest request)
 	{
-		var systemSettings = _dbContext.SystemSettings.Find(f => true).First();
-		if (!systemSettings.CanRegister)
-			return this.ErrorMessage(Errors.REGISTRATION_CLOSED);
-
 		if (_dbContext.Users.Find(f => f.Username == request.Username).Any())
 			return this.ErrorMessage(Errors.USERNAME_EXISTS);
 

@@ -269,7 +269,7 @@ public class ItemsController : ControllerBase
 
 	[HttpGet]
 	[Route("items/{id}/info")]
-	public ActionResult<ItemInfoResponse> GetItemInfo([FromRoute] string id, [FromRoute] bool isFolder)
+	public ActionResult<ItemInfoResponse> GetItemInfo([FromRoute] string id, [FromQuery] bool isFolder)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -306,12 +306,33 @@ public class ItemsController : ControllerBase
 	// TODO
 	[HttpPut]
 	[Route("items/{id}/info")]
-	public ActionResult UpdateItemInfo([FromRoute] string id, [FromRoute] bool isFolder) => throw new NotImplementedException();
+	public ActionResult UpdateItemInfo([FromRoute] string id, [FromQuery] bool isFolder) => throw new NotImplementedException();
 
 	// TODO
 	[HttpGet]
 	[Route("items/{id}/full-path")]
-	public ActionResult GetFullPath([FromRoute] string id, [FromRoute] bool isFolder) => throw new NotImplementedException();
+	public ActionResult<string> GetFullPath([FromRoute] string id, [FromQuery] bool isFolder)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+		Item? item = null;
+		if (isFolder)
+			item = _dbContext.Folders.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		else
+			item = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+
+		if (item == null)
+			return this.ErrorMessage(isFolder ? Errors.FOLDER_NOT_FOUND : Errors.FILE_NOT_FOUND);
+
+		var fullPath = "/" + item.Name;
+		while (!string.IsNullOrEmpty(item.ParentId))
+		{
+			item = _dbContext.Folders.Find(f => f.Id.ToString() == item.ParentId).First();
+			fullPath += "/" + item.Name;
+		}
+
+		return Ok(fullPath);
+	}
 
 	// TODO
 	[HttpPost]
