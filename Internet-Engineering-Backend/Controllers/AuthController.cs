@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Internet_Engineering_Backend.Data;
 using Internet_Engineering_Backend.Models;
 using Internet_Engineering_Backend.Resources;
@@ -49,31 +48,6 @@ public class AuthController : ControllerBase
 	}
 
 	[HttpPost]
-	[Route("test")]
-	public async Task<ActionResult> Test(IFormFile file)
-	{
-		// var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-		// using (var ms = new MemoryStream())
-		// {
-		// file.CopyTo(ms);
-		// var fileBytes = ms.ToArray();
-
-		// var stream = file.OpenReadStream();
-		// 		var name = Guid.NewGuid().ToString();
-		// 		var args = new PutObjectArgs()
-		// 			.WithBucket(userId)
-		// 			.WithObject(name)
-		// 			.WithObjectSize(file.Length)
-		// 			.WithStreamData(file.OpenReadStream());
-		// 		await _minioClient.PutObjectAsync(args);
-		// 
-		// 		return Ok($"localhost:9000/{userId}/{name}");
-
-		return Ok();
-	}
-
-	[HttpPost]
 	[Route("register")]
 	public async Task<ActionResult> Register(RegisterRequest request)
 	{
@@ -110,17 +84,18 @@ public class AuthController : ControllerBase
 		var makeArgs = new MakeBucketArgs().WithBucket(bucketName);
 		await _minioClient.MakeBucketAsync(makeArgs);
 
-		// TODO
-		// var jsonFormat = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:GetBucketLocation\",\"s3:ListBucket\",\"s3:ListBucketMultipartUploads\"],\"Resource\":[\"arn:aws:s3:::65b4ae718c321a19d0d4f9d4\"]},{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:ListMultipartUploadParts\",\"s3:PutObject\",\"s3:AbortMultipartUpload\",\"s3:DeleteObject\",\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::65b4ae718c321a19d0d4f9d4/*\"]}]}";
-		// var updateArgs = new SetPolicyArgs().WithBucket(bucketName).WithPolicy(jsonFormat);
-		// await _minioClient.SetPolicyAsync(updateArgs);
+		var jsonFormat = "{\"Statement\":[{\"Action\":\"s3:*\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"arn:aws:s3:::" + bucketName + "/*\",\"Sid\":\"Set entirely public\"}],\"Version\":\"2012-10-17\"}";
+		var updateArgs = new SetPolicyArgs().WithBucket(bucketName).WithPolicy(jsonFormat);
+		await _minioClient.SetPolicyAsync(updateArgs);
 
-		var baseFolder = new Folder
+		_dbContext.Folders.InsertOne(new Folder
 		{
+			ItemType = ItemTypes.Folder,
 			Name = "",
+			Depth = 0,
 			OwnerId = newUser.Id,
 			ParentId = "",
-		};
+		});
 
 		var claims = new List<Claim>
 		{

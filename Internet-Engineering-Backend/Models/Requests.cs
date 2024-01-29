@@ -42,3 +42,9 @@ public class UpdatePasswordRequest
 {
 	public required string NewPassword { get; set; }
 }
+
+public class CreateFolderRequest
+{
+	public required string Name { get; set; }
+	public required string ParentId { get; set; }
+}

@@ -29,3 +29,12 @@ public class CredentialsResponse
 	public required string IV { get; set; }
 	public required string Key { get; set; }
 }
+
+public class ItemResponse
+{
+	public required string Id { get; set; }
+	public required string Name { get; set; }
+	public required DateTime CreationDate { get; set; }
+	public string IconColor { get; set; } = "#ffffff";
+	public required string ItemType { get; set; }
+}

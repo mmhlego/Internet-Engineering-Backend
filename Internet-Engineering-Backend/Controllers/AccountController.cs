@@ -81,9 +81,6 @@ public class AccountController : ControllerBase
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 		var user = _dbContext.Users.Find(f => f.Id.ToString() == userId).First();
 
-		if (request.Key.Length != 32)
-			return this.ErrorMessage(Errors.INVALID_KEY_LENGTH);
-
 		user.EncryptionKey = request.Key;
 		_dbContext.Users.ReplaceOne(f => f.Id == user.Id, user);
 

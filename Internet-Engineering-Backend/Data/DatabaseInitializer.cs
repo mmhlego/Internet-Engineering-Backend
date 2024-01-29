@@ -1,6 +1,5 @@
 ﻿using System.Security.Cryptography;
 using Internet_Engineering_Backend.Models;
-using Internet_Engineering_Backend.Utils;
 using MongoDB.Driver;
 
 namespace Internet_Engineering_Backend.Data;
@@ -29,26 +28,23 @@ public class DatabaseInitializer
 		if (dbContext.Users.Find(f => f.Role == UserRoles.Admin).FirstOrDefault() != null) return;
 
 		var username = Environment.GetEnvironmentVariable("ADMIN_USERNAME") ?? "Admin";
-		var password = (Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "password").GetSHA512();
+		var password = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "password";
 		var email = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "";
 
-		var hashedPassword = password;
+		var hashedPassword = password.GetSHA512();
 		Aes aes = Aes.Create();
 		var salt = aes.IV.ToHexString();
-		var key = password.GetSHA256();
-		var x = "";
-		x.GetSHA256();
 
 		dbContext.Users.InsertOne(new User
 		{
 			Username = username,
-			Password = (password + salt).GetSHA512(),
+			Password = (hashedPassword + salt).GetSHA512(),
 			EmailAddress = email,
 			FirstName = "Admin",
 			LastName = "Admin",
 			Salt = salt,
 			Role = UserRoles.Admin,
-			EncryptionKey = StringUtils.EncryptString(key, password.GetSHA256().HexToByteArray(), aes.IV).ToHexString(),
+			EncryptionKey = "",
 		});
 	}
 }

@@ -75,20 +75,21 @@ public class SystemController : ControllerBase
 
 		_dbContext.Users.InsertOne(newUser);
 
+		// TODO: Create key for user
+
 		var bucketName = newUser.Id.ToString();
 		var makeArgs = new MakeBucketArgs().WithBucket(bucketName);
 		await _minioClient.MakeBucketAsync(makeArgs);
 
-		// TODO: Create key for user
-
-		// TODO
-		// var jsonFormat = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:GetBucketLocation\",\"s3:ListBucket\",\"s3:ListBucketMultipartUploads\"],\"Resource\":[\"arn:aws:s3:::65b4ae718c321a19d0d4f9d4\"]},{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:ListMultipartUploadParts\",\"s3:PutObject\",\"s3:AbortMultipartUpload\",\"s3:DeleteObject\",\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::65b4ae718c321a19d0d4f9d4/*\"]}]}";
-		// var updateArgs = new SetPolicyArgs().WithBucket(bucketName).WithPolicy(jsonFormat);
-		// await _minioClient.SetPolicyAsync(updateArgs);
+		var jsonFormat = "{\"Statement\":[{\"Action\":\"s3:*\",\"Effect\":\"Allow\",\"Principal\":\"*\",\"Resource\":\"arn:aws:s3:::" + bucketName + "/*\",\"Sid\":\"Set entirely public\"}],\"Version\":\"2012-10-17\"}";
+		var updateArgs = new SetPolicyArgs().WithBucket(bucketName).WithPolicy(jsonFormat);
+		await _minioClient.SetPolicyAsync(updateArgs);
 
 		var baseFolder = new Folder
 		{
+			Depth = 0,
 			Name = "",
+			ItemType = ItemTypes.Folder,
 			OwnerId = newUser.Id,
 			ParentId = "",
 		};

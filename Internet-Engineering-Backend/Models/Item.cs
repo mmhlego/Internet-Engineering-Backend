@@ -15,20 +15,14 @@ public class Item
 	public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 	public List<string> Tags { get; set; } = new List<string>();
 	public string Description { get; set; } = "";
-	public bool IsEncrypted { get; set; } = true;
 	public string IconColor { get; set; } = "#ffffff";
+	public required ItemTypes ItemType { get; set; }
+	public bool IsFavorite { get; set; } = false;
 }
 
-public class File : Item
+public enum ItemTypes
 {
-	public required long ContentSize { get; set; }
-	public required string FileName { get; set; }
-	public required string ContentUrl { get; set; }
-	public required FileTypes FileType { get; set; }
-}
-
-public enum FileTypes
-{
+	Folder,
 	Audio,
 	Video,
 	Image,
@@ -36,8 +30,16 @@ public enum FileTypes
 	Others,
 }
 
+public class File : Item
+{
+	public bool IsEncrypted { get; set; } = true;
+	public required long ContentSize { get; set; }
+	public required string ContentUrl { get; set; }
+}
+
 public class Folder : Item
 {
+	public required int Depth { get; set; }
 	public SortOrders SortOrder { get; set; } = SortOrders.Name;
 }
 
@@ -46,4 +48,5 @@ public enum SortOrders
 	Name,
 	CreationDate,
 	ModificationDate,
+	ChangeVisibility,
 }

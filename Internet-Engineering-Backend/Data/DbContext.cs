@@ -10,6 +10,7 @@ public class DbContext : IDisposable
 	public IMongoCollection<Models.File> Files;
 	public IMongoCollection<Folder> Folders;
 	public IMongoCollection<Activity> Activities;
+	public IMongoCollection<ItemSharing> ItemsSharing;
 	public IMongoCollection<SystemSettings> SystemSettings;
 
 	public DbContext(IOptions<DatabaseSettings> settings)
@@ -22,6 +23,7 @@ public class DbContext : IDisposable
 		Files = mongoDatabase.GetCollection<Models.File>("Files");
 		Folders = mongoDatabase.GetCollection<Folder>("Folders");
 		Activities = mongoDatabase.GetCollection<Activity>("Activities");
+		ItemsSharing = mongoDatabase.GetCollection<ItemSharing>("ItemsSharing");
 		SystemSettings = mongoDatabase.GetCollection<SystemSettings>("SystemSettings");
 	}
 
