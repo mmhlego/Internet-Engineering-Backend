@@ -141,12 +141,48 @@
     <value>Requested user was not found</value>
     <comment/>
   </data>
-  <data name="INVALID_KEY_LENGTH" xml:space="preserve">
-    <value>Key format is invalid</value>
-    <comment/>
-  </data>
   <data name="INVALID_PASSWORD_LENGTH" xml:space="preserve">
     <value>Password format is invalid</value>
+    <comment/>
+  </data>
+  <data name="FOLDER_NOT_FOUND" xml:space="preserve">
+    <value>Requested folder was not found</value>
+    <comment/>
+  </data>
+  <data name="FILE_NOT_FOUND" xml:space="preserve">
+    <value>Requested file was not found</value>
+    <comment/>
+  </data>
+  <data name="INVALID_NAME" xml:space="preserve">
+    <value>The name you've entered is invalid</value>
+    <comment/>
+  </data>
+  <data name="STORAGE_LIMIT_EXCEEDED" xml:space="preserve">
+    <value>Storage limit exceeded</value>
+    <comment/>
+  </data>
+  <data name="FILE_NOT_SHARED" xml:space="preserve">
+    <value>Requested file is private</value>
+    <comment/>
+  </data>
+  <data name="INVALID_USAGE_VALUE" xml:space="preserve">
+    <value>The usage you've entered is invalid</value>
+    <comment/>
+  </data>
+  <data name="INVALID_EXPIRY_DATE" xml:space="preserve">
+    <value>The expiry date you've entered is invalid</value>
+    <comment/>
+  </data>
+  <data name="INVALID_SHARE_URL" xml:space="preserve">
+    <value>Share url is invalid</value>
+    <comment/>
+  </data>
+  <data name="SHARE_EXPIRED" xml:space="preserve">
+    <value>Share link has expired</value>
+    <comment/>
+  </data>
+  <data name="USER_RESTRICTED" xml:space="preserve">
+    <value>User restricted by admin</value>
     <comment/>
   </data>
 </root>
