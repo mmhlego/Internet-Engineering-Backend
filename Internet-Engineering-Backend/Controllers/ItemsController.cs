@@ -69,6 +69,14 @@ public class ItemsController : ControllerBase
 
 		_dbContext.Folders.InsertOne(newFolder);
 
+		_dbContext.Activities.InsertOne(new Activity
+		{
+			IsFolder = true,
+			ItemId = newFolder.Id,
+			UserId = userId,
+			Operation = Operations.Create,
+		});
+
 		return Ok();
 	}
 
@@ -330,6 +338,14 @@ public class ItemsController : ControllerBase
 		if (item == null)
 			return this.ErrorMessage(isFolder ? Errors.FOLDER_NOT_FOUND : Errors.FILE_NOT_FOUND);
 
+		var activities = _dbContext.Activities.Find(f => f.ItemId == id && f.IsFolder == isFolder)
+			.ToList()
+			.Select(s => new ItemActivity
+			{
+				Date = s.ModificationDate,
+				Operation = s.Operation.ToString(),
+			}).ToList();
+
 		var info = new ItemInfoResponse
 		{
 			Id = item.Id,
@@ -342,6 +358,7 @@ public class ItemsController : ControllerBase
 			Tags = item.Tags,
 			IsShared = isShared,
 			Size = size,
+			Activities = activities,
 		};
 
 		return Ok(info);
@@ -364,6 +381,14 @@ public class ItemsController : ControllerBase
 			folder.Description = request.Description;
 
 			_dbContext.Folders.ReplaceOne(f => f.Id == folder.Id, folder);
+
+			_dbContext.Activities.InsertOne(new Activity
+			{
+				IsFolder = true,
+				ItemId = folder.Id,
+				UserId = userId,
+				Operation = Operations.Modify,
+			});
 		}
 
 		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
@@ -373,6 +398,14 @@ public class ItemsController : ControllerBase
 		file.Description = request.Description;
 
 		_dbContext.Files.ReplaceOne(f => f.Id == file.Id, file);
+
+		_dbContext.Activities.InsertOne(new Activity
+		{
+			IsFolder = false,
+			ItemId = file.Id,
+			UserId = userId,
+			Operation = Operations.Modify,
+		});
 
 		return Ok();
 	}
@@ -502,6 +535,14 @@ public class ItemsController : ControllerBase
 
 		_dbContext.Files.InsertOne(newFile);
 
+		_dbContext.Activities.InsertOne(new Activity
+		{
+			IsFolder = false,
+			ItemId = newFile.Id,
+			UserId = userId,
+			Operation = Operations.Create,
+		});
+
 		return Ok();
 	}
 
@@ -616,6 +657,14 @@ public class ItemsController : ControllerBase
 			Usage = request.Usage,
 		};
 		_dbContext.CustomLinks.InsertOne(newShare);
+
+		_dbContext.Activities.InsertOne(new Activity
+		{
+			IsFolder = false,
+			ItemId = file.Id,
+			UserId = userId,
+			Operation = Operations.Create,
+		});
 
 		return Ok(newShare);
 	}

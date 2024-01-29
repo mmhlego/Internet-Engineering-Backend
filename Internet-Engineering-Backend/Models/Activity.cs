@@ -11,6 +11,7 @@ public class Activity
 	public required string UserId { get; set; }
 	public required string ItemId { get; set; }
 
+	public required bool IsFolder { get; set; }
 	public DateTime ModificationDate { get; set; } = DateTime.UtcNow;
 	public required Operations Operation { get; set; }
 }
@@ -18,6 +19,6 @@ public class Activity
 public enum Operations
 {
 	Create,
-	Edit,
-	Delete,
+	Modify,
+	GenerateShare,
 }

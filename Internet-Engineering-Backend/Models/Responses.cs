@@ -47,10 +47,17 @@ public class ItemInfoResponse : ItemResponse
 {
 	public required List<string> Tags { get; set; }
 	public required string Description { get; set; }
+	public required List<ItemActivity> Activities { get; set; }
 }
 
 public class FolderContentResponse : Pagination<ItemResponse>
 {
 	public required string SortOrder { get; set; }
 	public required bool SortAscending { get; set; }
+}
+
+public class ItemActivity
+{
+	public required DateTime Date { get; set; }
+	public required string Operation { get; set; }
 }
