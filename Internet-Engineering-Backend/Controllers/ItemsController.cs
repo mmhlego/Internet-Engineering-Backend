@@ -159,6 +159,12 @@ public class ItemsController : ControllerBase
 			IsShared = false,
 		}).ToList();
 
+		items.Sort(
+			folder.SortOrder == SortOrders.Name
+			? (folder.SortAscending ? Extensions.CompareNameAsc : Extensions.CompareNameDesc)
+			: (folder.SortAscending ? Extensions.CompareDateAsc : Extensions.CompareDateDesc)
+		);
+
 		if (!onlyFolders)
 		{
 			var files = _dbContext.Files.Find(f =>
@@ -178,14 +184,14 @@ public class ItemsController : ControllerBase
 				IsShared = !s.IsEncrypted,
 			});
 
+			files.ToList().Sort(
+				folder.SortOrder == SortOrders.Name
+				? (folder.SortAscending ? Extensions.CompareNameAsc : Extensions.CompareNameDesc)
+				: (folder.SortAscending ? Extensions.CompareDateAsc : Extensions.CompareDateDesc)
+			);
+
 			items.AddRange(files);
 		}
-
-		items.Sort(
-			folder.SortOrder == SortOrders.Name
-			? (folder.SortAscending ? Extensions.CompareNameAsc : Extensions.CompareNameDesc)
-			: (folder.SortAscending ? Extensions.CompareDateAsc : Extensions.CompareDateDesc)
-		);
 
 		var data = Pagination<ItemResponse>.Paginate(page, perPage, items);
 		var response = new FolderContentResponse
@@ -432,6 +438,8 @@ public class ItemsController : ControllerBase
 				UserId = userId,
 				Operation = Operations.Modify,
 			});
+
+			return Ok();
 		}
 
 		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
@@ -495,9 +503,14 @@ public class ItemsController : ControllerBase
 
 			folder.IsFavorite = !folder.IsFavorite;
 			_dbContext.Folders.ReplaceOne(f => f.Id == folder.Id, folder);
+
+			return Ok();
 		}
 
 		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		if (file == null)
+			return this.ErrorMessage(Errors.FILE_NOT_FOUND);
+
 		file.IsFavorite = !file.IsFavorite;
 		_dbContext.Files.ReplaceOne(f => f.Id == file.Id, file);
 
@@ -518,9 +531,14 @@ public class ItemsController : ControllerBase
 
 			folder.IconColor = request.Color;
 			_dbContext.Folders.ReplaceOne(f => f.Id == folder.Id, folder);
+
+			return Ok();
 		}
 
 		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		if (file == null)
+			return this.ErrorMessage(Errors.FILE_NOT_FOUND);
+
 		file.IconColor = request.Color;
 		_dbContext.Files.ReplaceOne(f => f.Id == file.Id, file);
 
