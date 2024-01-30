@@ -35,6 +35,7 @@ public class ItemResponse
 {
 	public required string Id { get; set; }
 	public required string Name { get; set; }
+	public required string ParentId { get; set; }
 	public required DateTime CreationDate { get; set; }
 	public required string IconColor { get; set; }
 	public required string ItemType { get; set; }

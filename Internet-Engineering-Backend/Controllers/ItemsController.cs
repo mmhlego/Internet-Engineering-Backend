@@ -151,6 +151,7 @@ public class ItemsController : ControllerBase
 		{
 			Id = s.Id,
 			ItemType = s.ItemType.ToString(),
+			ParentId = s.ParentId,
 			Name = s.Name,
 			CreationDate = s.CreationDate,
 			IsFavorite = s.IsFavorite,
@@ -176,6 +177,7 @@ public class ItemsController : ControllerBase
 			{
 				Id = s.Id,
 				ItemType = s.ItemType.ToString(),
+				ParentId = s.ParentId,
 				Name = s.Name,
 				CreationDate = s.CreationDate,
 				IsFavorite = s.IsFavorite,
@@ -278,6 +280,7 @@ public class ItemsController : ControllerBase
 				{
 					Id = file.Id,
 					ItemType = file.ItemType.ToString(),
+					ParentId = file.ParentId,
 					Name = file.Name,
 					CreationDate = item.ShareDate,
 					IsFavorite = file.IsFavorite,
@@ -333,6 +336,7 @@ public class ItemsController : ControllerBase
 		{
 			Id = s.Id,
 			ItemType = s.ItemType.ToString(),
+			ParentId = s.ParentId,
 			Name = s.Name,
 			CreationDate = s.CreationDate,
 			IsFavorite = s.IsFavorite,
@@ -345,6 +349,7 @@ public class ItemsController : ControllerBase
 		{
 			Id = s.Id,
 			ItemType = s.ItemType.ToString(),
+			ParentId = s.ParentId,
 			Name = s.Name,
 			CreationDate = s.CreationDate,
 			IsFavorite = s.IsFavorite,
@@ -399,6 +404,7 @@ public class ItemsController : ControllerBase
 		{
 			Id = item.Id,
 			ItemType = item.ItemType.ToString(),
+			ParentId = item.ParentId,
 			Name = item.Name,
 			CreationDate = item.CreationDate,
 			IsFavorite = item.IsFavorite,
