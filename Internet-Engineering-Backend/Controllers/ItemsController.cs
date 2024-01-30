@@ -202,6 +202,49 @@ public class ItemsController : ControllerBase
 		return Ok(response);
 	}
 
+	[HttpDelete]
+	[Route("folders/{id}")]
+	public async Task<ActionResult<object>> DeleteFolder([FromRoute] string id, [FromBody] MoveFileRequest request)
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+		var rootFolder = _dbContext.Folders.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		if (rootFolder == null)
+			return this.ErrorMessage(Errors.FILE_NOT_FOUND);
+
+		var folders = new List<string>() { rootFolder.Id };
+		var files = new List<string>() { };
+		var objectNames = new List<string>() { };
+
+		while (folders.Count > 0)
+		{
+			var folderId = folders[0];
+			folders.RemoveAt(0);
+
+			_dbContext.Folders.Find(f => f.ParentId == folderId).ToList().ForEach(f => folders.Add(f.Id));
+			_dbContext.Files.Find(f => f.ParentId == folderId).ToList().ForEach(f =>
+			{
+				files.Add(f.Id);
+				objectNames.Add(f.ObjectName);
+			});
+		}
+
+		files.ForEach(fileId =>
+		{
+			_dbContext.Files.DeleteOne(f => f.Id == fileId);
+			_dbContext.ItemsSharing.DeleteMany(f => f.ItemId == fileId);
+			_dbContext.CustomLinks.DeleteMany(f => f.ItemId == fileId);
+		});
+
+		objectNames.ForEach(async name =>
+		{
+			var args = new RemoveObjectArgs().WithBucket(userId).WithObject(name);
+			await _minioClient.RemoveObjectAsync(args);
+		});
+
+		return Ok();
+	}
+
 	#endregion
 
 
@@ -392,6 +435,8 @@ public class ItemsController : ControllerBase
 		}
 
 		var file = _dbContext.Files.Find(f => f.Id.ToString() == id && f.OwnerId == userId).FirstOrDefault();
+		if (file == null)
+			return this.ErrorMessage(Errors.FILE_NOT_FOUND);
 
 		file.Name = request.Name;
 		file.Tags = request.Tags;
