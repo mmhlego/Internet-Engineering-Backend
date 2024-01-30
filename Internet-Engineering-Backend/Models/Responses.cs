@@ -62,3 +62,10 @@ public class ItemActivity
 	public required DateTime Date { get; set; }
 	public required string Operation { get; set; }
 }
+
+public class DownloadResponse
+{
+	public required string Url { get; set; }
+	public required string Filename { get; set; }
+	public required bool IsEncrypted { get; set; }
+}

@@ -305,7 +305,7 @@ public class ItemsController : ControllerBase
 
 	[HttpGet]
 	[Route("shared/{id}")]
-	public async Task<ActionResult<string>> GetShareUrl([FromRoute] string id)
+	public async Task<ActionResult<DownloadResponse>> GetShareUrl([FromRoute] string id)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -323,7 +323,12 @@ public class ItemsController : ControllerBase
 		var args = new PresignedGetObjectArgs().WithBucket(file.OwnerId).WithObject(file.ObjectName).WithExpiry(60 * 60);
 		var link = await _minioClient.PresignedGetObjectAsync(args);
 
-		return Ok(link);
+		return Ok(new DownloadResponse
+		{
+			Filename = file.Name + "." + file.Extension,
+			Url = link,
+			IsEncrypted = file.IsEncrypted,
+		});
 	}
 
 	[HttpGet]
@@ -598,6 +603,7 @@ public class ItemsController : ControllerBase
 			ParentId = folder.Id,
 			ContentSize = request.File.Length,
 			ItemType = type,
+			Extension = request.Extension,
 			ObjectName = objectId,
 			IsEncrypted = request.IsEncrypted,
 		};
@@ -637,7 +643,7 @@ public class ItemsController : ControllerBase
 
 	[HttpGet]
 	[Route("files/{id}/download")]
-	public async Task<ActionResult<string>> GetDownloadLink([FromRoute] string id)
+	public async Task<ActionResult<DownloadResponse>> GetDownloadLink([FromRoute] string id)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -648,7 +654,12 @@ public class ItemsController : ControllerBase
 		var args = new PresignedGetObjectArgs().WithBucket(userId).WithObject(file.ObjectName).WithExpiry(60 * 60);
 		var link = await _minioClient.PresignedGetObjectAsync(args);
 
-		return Ok(link);
+		return Ok(new DownloadResponse
+		{
+			Url = link,
+			Filename = file.Name + "." + file.Extension,
+			IsEncrypted = file.IsEncrypted,
+		});
 	}
 
 	[HttpPost]
