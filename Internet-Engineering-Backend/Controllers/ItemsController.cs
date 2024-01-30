@@ -204,7 +204,7 @@ public class ItemsController : ControllerBase
 
 	[HttpDelete]
 	[Route("folders/{id}")]
-	public async Task<ActionResult<object>> DeleteFolder([FromRoute] string id, [FromBody] MoveFileRequest request)
+	public async Task<ActionResult<object>> DeleteFolder([FromRoute] string id)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -593,7 +593,7 @@ public class ItemsController : ControllerBase
 
 	[HttpDelete]
 	[Route("files/{id}")]
-	public async Task<ActionResult<object>> DeleteFile([FromRoute] string id, [FromBody] MoveFileRequest request)
+	public async Task<ActionResult<object>> DeleteFile([FromRoute] string id)
 	{
 		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 

@@ -15,7 +15,7 @@ public class Item
 	public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 	public List<string> Tags { get; set; } = new List<string>();
 	public string Description { get; set; } = "";
-	public string IconColor { get; set; } = "#ffffff";
+	public string IconColor { get; set; } = "bg-[#534435]";
 	public required ItemTypes ItemType { get; set; }
 	public bool IsFavorite { get; set; } = false;
 }
