@@ -1,3 +1,12 @@
+# Internet Engineering Project - Backend
+
+This repository alongside our [frontend](https://github.com/Alireza-Allahverdi/file-share) repository makes up the "File Management Server" project.
+
+This server uses [minio](https://bitnami.com/stack/minio) as a file storage and stores the files while they are end-to-end encrypted.
+
+Also, this project uses a [MongoDB)(https://hub.docker.com/_/mongo) database to store and manage the file system hierarchy and users.
+
+
 ## Access key permission
 
 ```json
